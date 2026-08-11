@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FinSight | Financial Transaction Analytics</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root{
+  --bg:#07111f; --panel:#0d1b2a; --panel2:#102337; --text:#eef5ff;
+  --muted:#91a4b8; --accent:#55d6be; --accent2:#7aa7ff; --danger:#ff7180;
+  --border:rgba(255,255,255,.08);
+}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(135deg,#06101c,#0b1727 55%,#08121f);
+font-family:Inter,Segoe UI,Arial,sans-serif;color:var(--text)}
+.container{max-width:1400px;margin:auto;padding:28px}
+header{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;margin-bottom:24px}
+h1{font-size:32px;margin:0 0 7px}
+.subtitle{color:var(--muted);font-size:14px}
+.badge{padding:8px 12px;border:1px solid var(--border);border-radius:999px;color:var(--accent);font-size:12px;background:rgba(85,214,190,.06)}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:14px}
+.card,.chart-card,.insight{background:rgba(13,27,42,.9);border:1px solid var(--border);border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.16)}
+.card{padding:18px}
+.label{font-size:12px;color:var(--muted);margin-bottom:8px}
+.value{font-size:25px;font-weight:750}
+.small{font-size:12px;color:var(--muted);margin-top:6px}
+.layout{display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:14px}
+.chart-card{padding:18px;min-height:340px}
+.chart-title{font-size:15px;font-weight:700;margin-bottom:12px}
+canvas{width:100%!important;height:270px!important}
+.insights{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.insight{padding:18px}
+.insight h3{margin:0 0 8px;font-size:14px}
+.insight p{margin:0;color:#b7c6d6;font-size:13px;line-height:1.6}
+footer{padding:24px 0 8px;color:var(--muted);font-size:12px}
+@media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}.layout{grid-template-columns:1fr}.insights{grid-template-columns:1fr}}
+@media(max-width:520px){.grid{grid-template-columns:1fr}.container{padding:16px}}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+  <div>
+    <h1>FinSight</h1>
+    <div class="subtitle">Financial Transaction & Risk Analytics Dashboard</div>
+  </div>
+  <div class="badge">PORTFOLIO PROJECT · SYNTHETIC DATA</div>
+</header>
+
+<section class="grid">
+  <div class="card"><div class="label">TOTAL TRANSACTION VALUE</div><div class="value" id="totalValue">—</div><div class="small">INR</div></div>
+  <div class="card"><div class="label">TRANSACTIONS</div><div class="value" id="transactions">—</div><div class="small">2025 activity</div></div>
+  <div class="card"><div class="label">SUCCESS RATE</div><div class="value" id="successRate">—</div><div class="small">successful transactions</div></div>
+  <div class="card"><div class="label">SUSPICIOUS TRANSACTIONS</div><div class="value" id="fraudCount">—</div><div class="small" id="fraudRate">—</div></div>
+</section>
+
+<section class="layout">
+  <div class="chart-card">
+    <div class="chart-title">Monthly Transaction Value</div>
+    <canvas id="monthlyChart"></canvas>
+  </div>
+  <div class="chart-card">
+    <div class="chart-title">Transaction Status</div>
+    <canvas id="statusChart"></canvas>
+  </div>
+</section>
+
+<section class="layout">
+  <div class="chart-card">
+    <div class="chart-title">Transaction Value by Merchant Category</div>
+    <canvas id="categoryChart"></canvas>
+  </div>
+  <div class="chart-card">
+    <div class="chart-title">Payment Method Mix</div>
+    <canvas id="paymentChart"></canvas>
+  </div>
+</section>
+
+<section class="layout">
+  <div class="chart-card">
+    <div class="chart-title">Transaction Value by City</div>
+    <canvas id="cityChart"></canvas>
+  </div>
+  <div class="chart-card">
+    <div class="chart-title">Customer Segment Value</div>
+    <canvas id="segmentChart"></canvas>
+  </div>
+</section>
+
+<section class="insights">
+  <div class="insight"><h3>Business Insight 01</h3><p id="insight1">—</p></div>
+  <div class="insight"><h3>Business Insight 02</h3><p id="insight2">—</p></div>
+  <div class="insight"><h3>Risk Insight</h3><p id="insight3">—</p></div>
+</section>
+
+<footer>
+  FinSight is an educational portfolio project. The transaction data is synthetic and contains no real customer or banking information.
+</footer>
+</div>
+
+<script>
+const DATA = {"kpis": {"totalValue": 465229832.3680439, "transactions": 100000, "successRate": 93.521, "fraudCount": 1680, "fraudRate": 1.68, "avgValue": 4652.298323680439, "failed": 4491}, "monthly": [{"month_num": 1, "month": "Jan", "transaction_value": 40074520.604835935, "transactions": 8518, "suspicious": 156, "failed": 397}, {"month_num": 2, "month": "Feb", "transaction_value": 35523330.41078985, "transactions": 7701, "suspicious": 109, "failed": 345}, {"month_num": 3, "month": "Mar", "transaction_value": 39745519.56350863, "transactions": 8482, "suspicious": 147, "failed": 377}, {"month_num": 4, "month": "Apr", "transaction_value": 37508722.228984736, "transactions": 8330, "suspicious": 148, "failed": 387}, {"month_num": 5, "month": "May", "transaction_value": 40079352.98892016, "transactions": 8538, "suspicious": 148, "failed": 372}, {"month_num": 6, "month": "Jun", "transaction_value": 38679538.76004945, "transactions": 8228, "suspicious": 136, "failed": 405}, {"month_num": 7, "month": "Jul", "transaction_value": 38623935.52786683, "transactions": 8374, "suspicious": 129, "failed": 381}, {"month_num": 8, "month": "Aug", "transaction_value": 39371435.65964881, "transactions": 8548, "suspicious": 145, "failed": 388}, {"month_num": 9, "month": "Sep", "transaction_value": 38624802.98461047, "transactions": 8377, "suspicious": 138, "failed": 345}, {"month_num": 10, "month": "Oct", "transaction_value": 39373351.70674936, "transactions": 8407, "suspicious": 134, "failed": 368}, {"month_num": 11, "month": "Nov", "transaction_value": 39360939.72639901, "transactions": 8316, "suspicious": 141, "failed": 345}, {"month_num": 12, "month": "Dec", "transaction_value": 38264382.205680676, "transactions": 8181, "suspicious": 149, "failed": 381}], "category": [{"merchant_category": "Electronics", "value": 149239086.38069075, "transactions": 10029}, {"merchant_category": "Travel", "value": 80379851.90288691, "transactions": 7924}, {"merchant_category": "Education", "value": 54838697.23922017, "transactions": 7062}, {"merchant_category": "Fashion", "value": 50015947.04428163, "transactions": 10059}, {"merchant_category": "Healthcare", "value": 34308383.79069501, "transactions": 8956}, {"merchant_category": "Utilities", "value": 24698226.576691292, "transactions": 9893}, {"merchant_category": "Fuel", "value": 21287650.738966197, "transactions": 10011}, {"merchant_category": "Entertainment", "value": 17379895.077595055, "transactions": 8082}, {"merchant_category": "Dining", "value": 16910102.029989675, "transactions": 11929}, {"merchant_category": "Grocery", "value": 16171991.5870272, "transactions": 16055}], "payment": [{"payment_method": "UPI", "value": 156866055.29661548, "transactions": 33913, "failed": 1541}, {"payment_method": "Debit Card", "value": 110753697.34513201, "transactions": 23849, "failed": 1054}, {"payment_method": "Credit Card", "value": 102943254.5158724, "transactions": 22116, "failed": 982}, {"payment_method": "Net Banking", "value": 57318256.05189808, "transactions": 12017, "failed": 564}, {"payment_method": "Wallet", "value": 36980457.69809312, "transactions": 8005, "failed": 346}], "city": [{"city": "Kolkata", "value": 47015225.8347171, "transactions": 9891}, {"city": "Delhi", "value": 46979927.5144722, "transactions": 10087}, {"city": "Mumbai", "value": 46912873.90423349, "transactions": 10008}, {"city": "Chennai", "value": 46858789.72378211, "transactions": 10005}, {"city": "Kochi", "value": 46654042.7444644, "transactions": 10005}, {"city": "Jaipur", "value": 46501311.65715435, "transactions": 10020}, {"city": "Hyderabad", "value": 46491417.74808383, "transactions": 10042}, {"city": "Ahmedabad", "value": 46434106.3694427, "transactions": 10054}, {"city": "Bengaluru", "value": 45798754.34603127, "transactions": 9908}, {"city": "Pune", "value": 45140295.355982706, "transactions": 9880}], "segment": [{"customer_segment": "Affluent", "value": 101466620.82559177, "transactions": 21833}, {"customer_segment": "Mass Market", "value": 225889598.81622946, "transactions": 48797}, {"customer_segment": "Premium", "value": 56556714.59546705, "transactions": 12002}, {"customer_segment": "Student", "value": 81316898.13075563, "transactions": 17368}]};
+
+const money = v => "₹" + (v/10000000).toFixed(2) + " Cr";
+const fmt = v => new Intl.NumberFormat("en-IN").format(v);
+document.getElementById("totalValue").textContent = money(DATA.kpis.totalValue);
+document.getElementById("transactions").textContent = fmt(DATA.kpis.transactions);
+document.getElementById("successRate").textContent = DATA.kpis.successRate.toFixed(1) + "%";
+document.getElementById("fraudCount").textContent = fmt(DATA.kpis.fraudCount);
+document.getElementById("fraudRate").textContent = DATA.kpis.fraudRate.toFixed(2) + "% of transactions";
+
+const common = {
+  responsive:true, maintainAspectRatio:false,
+  plugins:{legend:{labels:{color:"#b7c6d6",font:{size:11}}}},
+  scales:{
+    x:{ticks:{color:"#91a4b8"},grid:{color:"rgba(255,255,255,.05)"}},
+    y:{ticks:{color:"#91a4b8"},grid:{color:"rgba(255,255,255,.05)"}}
+  }
+};
+
+const labels = DATA.monthly.map(x=>x.month);
+new Chart(document.getElementById("monthlyChart"),{
+ type:"line", data:{labels,datasets:[{
+  label:"Transaction Value",data:DATA.monthly.map(x=>x.transaction_value),
+  borderColor:"#55d6be",backgroundColor:"rgba(85,214,190,.12)",fill:true,tension:.35
+ }]}, options:common
+});
+
+new Chart(document.getElementById("statusChart"),{
+ type:"doughnut",
+ data:{labels:["Successful","Failed","Pending"],
+ datasets:[{data:[
+   DATA.kpis.transactions-DATA.kpis.failed,
+   DATA.kpis.failed,
+   Math.round(DATA.kpis.transactions*.02)
+ ],backgroundColor:["#55d6be","#ff7180","#7aa7ff"],borderWidth:0}]},
+ options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{color:"#b7c6d6"}}}}
+});
+
+new Chart(document.getElementById("categoryChart"),{
+ type:"bar",data:{labels:DATA.category.map(x=>x.merchant_category),
+ datasets:[{label:"Value",data:DATA.category.map(x=>x.value),backgroundColor:"#7aa7ff",borderRadius:5}]},
+ options:{...common,indexAxis:"y"}
+});
+
+new Chart(document.getElementById("paymentChart"),{
+ type:"doughnut",data:{labels:DATA.payment.map(x=>x.payment_method),
+ datasets:[{data:DATA.payment.map(x=>x.value),backgroundColor:["#55d6be","#7aa7ff","#c58cff","#ffb86b","#ff7180"],borderWidth:0}]},
+ options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{color:"#b7c6d6",font:{size:10}}}}}
+});
+
+new Chart(document.getElementById("cityChart"),{
+ type:"bar",data:{labels:DATA.city.map(x=>x.city),
+ datasets:[{label:"Value",data:DATA.city.map(x=>x.value),backgroundColor:"#55d6be",borderRadius:5}]},
+ options:common
+});
+
+new Chart(document.getElementById("segmentChart"),{
+ type:"doughnut",data:{labels:DATA.segment.map(x=>x.customer_segment),
+ datasets:[{data:DATA.segment.map(x=>x.value),backgroundColor:["#55d6be","#7aa7ff","#c58cff","#ffb86b"],borderWidth:0}]},
+ options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{color:"#b7c6d6"}}}}
+});
+
+const topCat=DATA.category[0];
+const topCity=DATA.city[0];
+document.getElementById("insight1").textContent =
+ `${topCat.merchant_category} is the highest-value merchant category in the dataset, making it a key area for transaction-volume and customer-behavior analysis.`;
+document.getElementById("insight2").textContent =
+ `${topCity.city} has the highest transaction value among the modeled locations, providing a useful starting point for geographic performance analysis.`;
+document.getElementById("insight3").textContent =
+ `${DATA.kpis.fraudRate.toFixed(2)}% of transactions are flagged as potentially suspicious in this synthetic dataset. The flag is for analytical demonstration, not a real fraud decision.`;
+</script>
+</body>
+</html>
