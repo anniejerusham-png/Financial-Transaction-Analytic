@@ -122,7 +122,7 @@ const common = {
 const labels = DATA.monthly.map(x=>x.month);
 new Chart(document.getElementById("monthlyChart"),{
  type:"line", data:{labels,datasets:[{
-  label:"Transaction Value",data:DATA.monthly.map(x=>x.transaction_value),
+  label:"Transaction Value",data:DATA.monthly.map(x=>Number(x.transaction_value)),
   borderColor:"#55d6be",backgroundColor:"rgba(85,214,190,.12)",fill:true,tension:.35
  }]}, options:common
 });
@@ -131,34 +131,67 @@ new Chart(document.getElementById("statusChart"),{
  type:"doughnut",
  data:{labels:["Successful","Failed","Pending"],
  datasets:[{data:[
-   DATA.kpis.transactions-DATA.kpis.failed,
+   Math.round(DATA.kpis.transactions * DATA.kpis.successRate / 100),
    DATA.kpis.failed,
-   Math.round(DATA.kpis.transactions*.02)
+   DATA.kpis.transactions - Math.round(DATA.kpis.transactions * DATA.kpis.successRate / 100) - DATA.kpis.failed
  ],backgroundColor:["#55d6be","#ff7180","#7aa7ff"],borderWidth:0}]},
  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{color:"#b7c6d6"}}}}
 });
 
 new Chart(document.getElementById("categoryChart"),{
- type:"bar",data:{labels:DATA.category.map(x=>x.merchant_category),
- datasets:[{label:"Value",data:DATA.category.map(x=>x.value),backgroundColor:"#7aa7ff",borderRadius:5}]},
- options:{...common,indexAxis:"y"}
+ type:"bar",
+ data:{
+   labels:DATA.category.map(x=>x.merchant_category),
+   datasets:[{
+     label:"Transaction Value",
+     data:DATA.category.map(x=>Number(x.value)),
+     backgroundColor:"#7aa7ff",
+     borderRadius:5
+   }]
+ },
+ options:{
+   responsive:true,
+   maintainAspectRatio:false,
+   plugins:{
+     legend:{labels:{color:"#b7c6d6",font:{size:11}}},
+     tooltip:{
+       callbacks:{
+         label:(ctx)=>" ₹"+Number(ctx.parsed.y).toLocaleString("en-IN")
+       }
+     }
+   },
+   scales:{
+     x:{
+       ticks:{color:"#91a4b8"},
+       grid:{color:"rgba(255,255,255,.05)"}
+     },
+     y:{
+       beginAtZero:true,
+       ticks:{
+         color:"#91a4b8",
+         callback:(value)=>"₹"+(Number(value)/10000000).toFixed(0)+" Cr"
+       },
+       grid:{color:"rgba(255,255,255,.05)"}
+     }
+   }
+ }
 });
 
 new Chart(document.getElementById("paymentChart"),{
  type:"doughnut",data:{labels:DATA.payment.map(x=>x.payment_method),
- datasets:[{data:DATA.payment.map(x=>x.value),backgroundColor:["#55d6be","#7aa7ff","#c58cff","#ffb86b","#ff7180"],borderWidth:0}]},
+ datasets:[{data:DATA.payment.map(x=>Number(x.value)),backgroundColor:["#55d6be","#7aa7ff","#c58cff","#ffb86b","#ff7180"],borderWidth:0}]},
  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{color:"#b7c6d6",font:{size:10}}}}}
 });
 
 new Chart(document.getElementById("cityChart"),{
  type:"bar",data:{labels:DATA.city.map(x=>x.city),
- datasets:[{label:"Value",data:DATA.city.map(x=>x.value),backgroundColor:"#55d6be",borderRadius:5}]},
+ datasets:[{label:"Value",data:DATA.city.map(x=>Number(x.value)),backgroundColor:"#55d6be",borderRadius:5}]},
  options:common
 });
 
 new Chart(document.getElementById("segmentChart"),{
  type:"doughnut",data:{labels:DATA.segment.map(x=>x.customer_segment),
- datasets:[{data:DATA.segment.map(x=>x.value),backgroundColor:["#55d6be","#7aa7ff","#c58cff","#ffb86b"],borderWidth:0}]},
+ datasets:[{data:DATA.segment.map(x=>Number(x.value)),backgroundColor:["#55d6be","#7aa7ff","#c58cff","#ffb86b"],borderWidth:0}]},
  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{color:"#b7c6d6"}}}}
 });
 
